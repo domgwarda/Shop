@@ -1,0 +1,51 @@
+<!-- src/views/home.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="./style-home.css">
+    <style>
+    @media screen and (max-width: 600px) {
+        .column {
+          width: 100%;
+        }
+      }
+    </style>
+</head>
+<body>
+    <div class ="topnav">
+        <a class="active" href="/">Home</a>
+        <a href="/Basket">Basket</a>
+        <a href="/Favorites">Favorites</a>
+        <a href="/login">Login</a>
+        <!-- <% if (true) { %>
+            <a href="/add-product">Add product</a>
+        <% }%> -->
+    </div>
+    <div class="container">
+        <div class="column left">
+            <h2>Left Sidebar</h2>
+            <p>Some content here...</p>
+        </div>
+
+        <div class="column right">
+            <h2>Products</h2>
+            <div id="products_list"></div>
+        </div>
+            <script>
+                fetch('/products')
+                  .then(response => response.json())
+                  .then(data => {
+                    const productList = data.map(
+                      product => `<li>Name: ${product.name}, Cost: ${product.cost}, Type: ${product.type}</li>`
+                    ).join('');
+                    document.getElementById('products_list').innerHTML = `<ul>${productList}</ul>`;
+                  })
+                  .catch(error => console.error('Error occurred:', error));
+              </script>
+        </div>
+    </div>
+</body>
+</html>

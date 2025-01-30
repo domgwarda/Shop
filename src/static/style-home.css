@@ -1,0 +1,65 @@
+* {
+    margin:0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+
+}
+
+
+body {
+    margin: 0;
+    justify-content:center;
+    align-items: top;
+    height: 100vh;
+    background-color: rgb(255, 255, 255);
+    background-size: cover;
+}
+
+
+/*  Home navigation bar */
+.topnav {  
+    overflow: hidden;
+    background-color: #333;
+}
+
+/* Style of links navigation bar */
+.topnav a {
+    float:right;
+    display: block;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+/* Change color of links on hover */
+.topnav a:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+/* Add color to active/current link */
+.topnav a.active {
+    background-color: #9d41af;
+    color: white;
+}
+
+.column {
+    float: left;
+}
+
+.left {
+    width: 10%;
+    padding: 10px;
+    background-color: #909090;
+}
+
+.right {
+    width: 90%;
+    padding: 10px;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
