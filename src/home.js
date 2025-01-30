@@ -37,11 +37,6 @@ app.get('/products', async (req, res) => {
 app.get('/', function (req, res) {
     res.render('home.ejs');
 });
-
-
-app.get('/login', (req, res) => {
-    res.render('login.ejs')
-  });
   
 app.get('/add-product', (req, res) => {
       if (true) {  //   if req.session.isAdmin kiedy zalogowany admin
@@ -57,5 +52,52 @@ app.get('/add-product', (req, res) => {
     }
   });
 
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+
+  users.forEach(user => {
+    if (user.username === username && user.password === password) {
+      console.log("Zalogowano pomyślnie: ", username);
+    }
+  });
+});
+
+app.get("/register", (req, res) => {
+  res.render("register.ejs")
+})
+
+app.post("/register", (req, res) => {
+  const { username, password, cpassword, email, phone, date} = req.body;
+  console.log("Login:", username, "Hasło:", password);
+});
+
+//
+
+app.get("/login", (req, res) => {
+  res.render("login");
+});
+
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+
+  users.forEach(user => {
+    if (user.username === username && user.password === password) {
+      console.log("Ok: ", username);
+    }
+  });
+});
+
+app.get("/register", (req, res) => {
+  res.render("register.ejs")
+})
+
+app.post("/register", (req, res) => {
+  const { username, password, cpassword, email, phone, date} = req.body;
+  console.log("Login:", username, "Password:", password);
+});
 
 http.createServer(app).listen(3011);
