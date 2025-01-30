@@ -12,7 +12,7 @@ app.set('view engine', 'ejs');
 app.use( express.static( "./static" ) );
 
 //lista
-app.get('/', (req, res) => {
+app.get('/login', (req, res) => {
   res.render('login.ejs')
 });
 
