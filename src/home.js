@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { query } from 'express';
 import bodyParser from 'body-parser';
 import http from 'http';
 import session from 'express-session';
@@ -10,7 +10,8 @@ var app = express();
 app.set('views', './views');
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
-app.use(express.static("./static"));
+app.use(express.static('./static'));
+app.use('/images', express.static('images'));
 
 const pool = new Pool({
   user: 'postgres',
@@ -20,10 +21,13 @@ const pool = new Pool({
   port: 5432,
 });
 
-app.get('/products', async (req, res) => {
-  const query = 'SELECT * FROM Products'; 
+app.get('/products/:from(\\d+)/?', async (req, res) => {
+  console.log('req.params', req.params);
+  const from = parseInt(req.params.from, 10);
+  const query = 'SELECT * FROM Products LIMIT 3 OFFSET $1';
+  const values = [from];
 
-  pool.query(query, (err, result) => {
+  pool.query(query, values, async (err, result) => {
     if (err) {
       console.error('Error executing query', err.stack);
       res.status(500).json({ error: 'Internal Server Error' }); 
@@ -40,17 +44,32 @@ app.get('/', function (req, res) {
   
 app.get('/add-product', (req, res) => {
       if (true) {  //   if req.session.isAdmin kiedy zalogowany admin
-      var name = req.body.name;
-      var price = req.body.price;
-      var image = req.body.image;
-      if (name && price && image) {
-          res.render('add-product.ejs', { name: name, price: price, image: image });
-      }
+        res.render('add-product.ejs');
     }
     else {
       res.redirect('/login');
     }
   });
+
+app.post('/add-product', (req, res) => {
+  const { name, cost, image, type } = req.body;
+
+  if (!name || !cost || !image || !type) {
+    return res.status(400).send('All fields are required');
+  }
+
+  const query = 'INSERT INTO products (name, cost, image, type) VALUES ($1, $2, $3, $4)';
+  const values = [name, cost, image, type];
+
+  pool.query(query, values, (err, result) => {
+    if (err) {
+      console.error('Error executing query', err.stack);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    res.send('Product added successfully!');
+  });
+});
 
 app.get("/login", (req, res) => {
   res.render("login");
@@ -75,7 +94,6 @@ app.post("/register", (req, res) => {
   console.log("Login:", username, "Hasło:", password);
 });
 
-//
 
 app.get("/login", (req, res) => {
   res.render("login");
