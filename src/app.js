@@ -4,6 +4,11 @@ import http from 'http';
 import session from 'express-session';
 import pg from 'pg';
 
+import { createClient } from '@supabase/supabase-js'
+const supabaseUrl = 'https://xisipkssprvmcqsceyup.supabase.co'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhpc2lwa3NzcHJ2bWNxc2NleXVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgzMzg4MTYsImV4cCI6MjA1MzkxNDgxNn0.0Im13iHWAjULkOpKEHuJei70q1KBC8groYnxntVzpgY'
+const supabase = createClient(supabaseUrl, supabaseKey)
+
 import { users } from "./users.js"
 
 const { Pool } = pg;
@@ -21,6 +26,8 @@ const pool = new Pool({
   password: 'nivea',
   port: 5432,
 });
+
+
 
 app.get('/products', async (req, res) => {
   const query = 'SELECT * FROM Products'; 
@@ -54,24 +61,49 @@ app.get('/add-product', (req, res) => {
     }
   });
 
-app.get("/login", (req, res) => {
-  res.render("login");
+app.get("/users", async (req, res) => {
+  try {
+    const { data, error } = await supabase.from("users").select("*");
+    if (error) throw error;
+    res.json(data);
+    
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-app.post("/login", (req, res) => {
+app.get("/login", (req, res) => {
+  const error = req.query.error;
+  res.render("login", { error });
+});
+
+app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
-  console.log(username, password)
+  console.log("Próba logowania:", username, password);
 
-  users.forEach(user => {
-    if (user.username === username && user.password === password) {
-      console.log("Zalogowano pomyślnie: ", username);
+  try {
+    const { data, error } = await supabase.from("users").select("password").eq("username", username).single();
+    
+    if (error || !data) {
+      return res.redirect("/login?error=Użytkownik%20nie%20istnieje");
     }
-  });
+
+    if (data.password !== password) {
+      return res.redirect("/login?error=Nieprawidłowe%20hasło");
+    }
+
+    res.json({ message: "Zalogowano pomyślnie", user: data });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.get("/register", (req, res) => {
-  res.render("register.ejs")
+  const error = req.query.error;
+  res.render("register", { error });
 })
 
 app.post("/register", (req, res) => {
@@ -96,12 +128,27 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  res.render("register.ejs")
+  res.render("register")
 })
 
-app.post("/register", (req, res) => {
-  const { username, password, cpassword, email, phone, date} = req.body;
-  console.log("Login:", username, "Password:", password);
+app.post('/register', async (req, res) => {
+  const { username, password, cpassword, email, phone, dob} = req.body;
+
+  if (!username || !password || !cpassword || !email || !phone || !dob) {
+    return res.redirect("/register?error=Brak%20wprowadzonych%20danych");
+  }
+
+  try {
+    const { data, error } = await supabase.from('users').insert([{ username, password, email, phone, dob }]);
+
+    if (error) {
+      return res.status(400).json({ success: false, error: error.message });
+    }
+
+    res.json({ success: true, message: 'Zarejestrowano pomyślnie!', data });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 http.createServer(app).listen(3011);
