@@ -1,51 +1,89 @@
 <!-- src/views/home.ejs -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
     <link rel="stylesheet" href="./style-home.css">
     <style>
-    @media screen and (max-width: 600px) {
-        .column {
-          width: 100%;
+        @media screen and (max-width: 600px) {
+            .column {
+                width: 100%;
+            }
         }
-      }
     </style>
 </head>
+
 <body>
-    <div class ="topnav">
+    <div class="topnav">
         <a class="active" href="/">Home</a>
         <a href="/Basket">Basket</a>
         <a href="/Favorites">Favorites</a>
         <a href="/login">Login</a>
-        <!-- <% if (true) { %>
+        <% if (true) { %>
             <a href="/add-product">Add product</a>
-        <% }%> -->
+        <% }%>
     </div>
     <div class="container">
         <div class="column left">
             <h2>Left Sidebar</h2>
             <p>Some content here...</p>
         </div>
-
         <div class="column right">
-            <h2>Products</h2>
+            <h2>Products: </h2>
             <div id="products_list"></div>
+            <button id="load_more">Load more</button>
         </div>
-            <script>
-                fetch('/products')
-                  .then(response => response.json())
-                  .then(data => {
-                    const productList = data.map(
-                      product => `<li>Name: ${product.name}, Cost: ${product.cost}, Type: ${product.type}</li>`
-                    ).join('');
-                    document.getElementById('products_list').innerHTML = `<ul>${productList}</ul>`;
-                  })
-                  .catch(error => console.error('Error occurred:', error));
-              </script>
-        </div>
+        <script>
+            function showProduct(product) {
+                const divclass = document.createElement('div');
+                divclass.className = 'gallery-item';
+                
+                const productImage = document.createElement('img');
+                productImage.src = product.image;
+                divclass.appendChild(productImage);
+                
+                const textWrapper = document.createElement('div');
+                textWrapper.className = 'textWrapper';
+                
+                const productText = document.createElement('div');
+                productText.textContent =`${product.name} `;
+                textWrapper.appendChild(productText);
+                
+                const productCost = document.createElement('div');
+                productCost.textContent = `Cost: ${product.cost}`;
+                textWrapper.appendChild(productCost);
+                
+                divclass.appendChild(textWrapper);
+                
+                return divclass;
+            }
+            from = 0;
+            function loadProducts() {
+                fetch(`/products/${from}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length === 0) {
+                            document.getElementById('load_more').disabled = true;
+                            return;
+                        }
+                        const productList = document.getElementById('products_list');
+                        data.forEach(product => {
+                            const productShow = showProduct(product);
+                            document.getElementById('products_list').appendChild(productShow);
+                        });
+                        from = data.reduce((acc, product) => { if (product.id > acc) return product.id; else return acc }, from);
+                        console.log(from);
+                    })
+                    .catch(error => console.error('Error occurred:', error));
+            }
+            loadProducts();
+            document.getElementById("load_more").onclick = loadProducts;
+        </script>
+    </div>
     </div>
 </body>
+
 </html>
