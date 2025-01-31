@@ -29,6 +29,7 @@ const pool = new Pool({
   port: 5432,
 });
 
+
 app.get('/products/:from(\\d+)/?', async (req, res) => {
   console.log('req.params', req.params);
   const from = parseInt(req.params.from, 10);
@@ -76,7 +77,34 @@ app.post('/add-product', (req, res) => {
     }
 
     res.send('Product added successfully!');
-  });
+  }});
+
+app.get("/login", (req, res) => {
+  const error = req.query.error;
+  res.render("login", { error });
+});
+
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  console.log("Próba logowania:", username, password);
+
+  try {
+    const { data, error } = await supabase.from("users").select("password").eq("username", username).single();
+    
+    if (error || !data) {
+      return res.redirect("/login?error=Użytkownik%20nie%20istnieje");
+    }
+
+    if (data.password !== password) {
+      return res.redirect("/login?error=Nieprawidłowe%20hasło");
+    }
+
+    res.json({ message: "Zalogowano pomyślnie", user: data });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.get("/login", (req, res) => {
