@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import http from 'http';
 import session from 'express-session';
+import multer from 'multer';
 import pg from 'pg';
 
 import { users } from "./users.js"
@@ -23,6 +24,19 @@ const pool = new Pool({
   password: 'nivea',
   port: 5432,
 });
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'images/'); 
+  },
+  filename: (req, file, cb) => {
+    const name = req.body.name.replace(/\s+/g, '_'); 
+    const filename = `${name}.png`; 
+    cb(null, filename);
+  },
+});
+
+const upload = multer({ storage });
 
 app.get('/products/:from(\\d+)/?', async (req, res) => {
   console.log('req.params', req.params);
@@ -46,23 +60,23 @@ app.get('/', function (req, res) {
 });
   
 app.get('/add-product', (req, res) => {
-      if (true) {  //   if req.session.isAdmin kiedy zalogowany admin
-        res.render('add-product.ejs');
-    }
-    else {
-      res.redirect('/login');
-    }
-  });
+  if (true) {  //   if req.session.isAdmin kiedy zalogowany admin
+    res.render('add-product.ejs');
+}
+else {
+  res.redirect('/login');
+}
+});
 
-app.post('/add-product', (req, res) => {
-  const { name, cost, image, type } = req.body;
-
-  if (!name || !cost || !image || !type) {
+app.post('/add-product', upload.single('image'), (req, res) => {
+  const { name, cost, type } = req.body;
+  if (!name || !cost || !type) {
     return res.status(400).send('All fields are required');
   }
 
+  const imagePath = `images/${req.file.filename}`; // Custom path for the image
   const query = 'INSERT INTO products (name, cost, image, type) VALUES ($1, $2, $3, $4)';
-  const values = [name, cost, image, type];
+  const values = [name, cost, imagePath, type];
 
   pool.query(query, values, (err, result) => {
     if (err) {
@@ -124,4 +138,4 @@ app.post("/register", (req, res) => {
   console.log("Login:", username, "Password:", password);
 });
 
-http.createServer(app).listen(3011);
+http.createServer(app).listen(3000);
