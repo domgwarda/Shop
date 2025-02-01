@@ -14,7 +14,7 @@
                 <div class="">
                     <input type="text" id="username" name="username" required placeholder="Username">
                     <input type="password" id="password" name="password" required placeholder="Password">
-                    <input type="password" id="confirm-password" name="confirm-password" required placeholder="Confirm Password">
+                    <input type="password" id="cpassword" name="cpassword" required placeholder="Confirm Password">
                 </div>
 
                 <div class="">
@@ -28,7 +28,11 @@
                 </div>
                     
                     <p>Already have an account? <a href="../login">Login</a></p>
+                    <% if (error) { %>
+                        <p style="color: red;"><%= error %></p>
+                    <% } %>
                 </div>
+
             </form>
         </div>
     </div>

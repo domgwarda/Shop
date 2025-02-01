@@ -5,10 +5,6 @@ import session from 'express-session';
 import multer from 'multer';
 import pg from 'pg';
 
-// import { createClient } from '@supabase/supabase-js'
-// const supabaseUrl = 'https://xisipkssprvmcqsceyup.supabase.co'
-// const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhpc2lwa3NzcHJ2bWNxc2NleXVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgzMzg4MTYsImV4cCI6MjA1MzkxNDgxNn0.0Im13iHWAjULkOpKEHuJei70q1KBC8groYnxntVzpgY'
-// const supabase = createClient(supabaseUrl, supabaseKey)
 
 import { users } from "./users.js"
 import e from 'express';
@@ -33,7 +29,7 @@ const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
     database: 'weppo-projekt',
-    password: 'nivea',
+    password: '1',
     port: 5432,
 });
 
@@ -47,6 +43,8 @@ const storage = multer.diskStorage({
         cb(null, filename);
     },
 });
+
+pool.connect()
 
 const upload = multer({ storage });
 
@@ -145,104 +143,77 @@ app.get('/login', (req, res) => {
     res.render('login', { error });
   });
 
-
 app.post("/login", async (req, res) => {
-    const { username, password } = req.body;
+  const { username, password } = req.body;
 
-    console.log('Próba logowania:', username, password);
-
-    const user = users.find((u) => u.username === username && u.password === password);
-
-    if (!user) {
-        return res.redirect('/login?error=Nieprawidłowa%20nazwa%20użytkownika%20lub%20hasło');
+  pool.query('SELECT * FROM users', (err, result) => {
+    if (err) {
+      console.log(err.message);
+      return res.status(500).send('Server error');
     }
 
-    // Store user in session
-    req.session.user = user;
-    if (username === 'admin') {
-        req.session.isAdmin = true;
+    let userFound = false;
+    result.rows.forEach((row) => {
+      if (row.username === username) {
+        userFound = true;
+        if (row.password !== password) {
+          return res.redirect("/login?error=Niepoprawne%20hasło");
+        }
+        return res.redirect('/');
+      }
+    });
+
+    if (!userFound) {
+      return res.redirect("/login?error=Użytkownik%20nieznaleziony");
     }
-    res.redirect('/dashboard'); 
+  });
 });
 
 // app.get("/login", (req, res) => {
 //     res.render("login");
 
-// });
+///
 
-app.post("/login", async (req, res) => {
-    const { username, password } = req.body;
-
-    console.log("Próba logowania:", username, password);
-
-    try {
-        const { data, error } = await supabase.from("users").select("password").eq("username", username).single();
-
-        if (error || !data) {
-            return res.redirect("/login?error=Użytkownik%20nie%20istnieje");
-        }
-
-        if (data.password !== password) {
-            return res.redirect("/login?error=Nieprawidłowe%20hasło");
-        }
-
-        res.json({ message: "Zalogowano pomyślnie", user: data });
-
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
 app.get("/register", (req, res) => {
     const error = req.query.error;
     res.render("register", { error });
 })
 
-// app.post("/register", (req, res) => {
-//     const { username, password, cpassword, email, phone, date } = req.body;
-//     console.log("Login:", username, "Hasło:", password);
+
+// app.get("/login", (req, res) => {
+//     res.render("login");
 // });
 
-//
+// app.post('/register', async (req, res) => {
+//     const { username, password, cpassword, email, phone, dob } = req.body;
 
-app.get("/login", (req, res) => {
-    res.render("login");
-});
+//     if (!username || !password || !cpassword || !email || !phone || !dob) {
+//         return res.redirect("/register?error=Brak%20wprowadzonych%20danych");
+//     }
 
-app.get('/register', (req, res) => {
-const error = req.query.error;
-res.render('register', { error });
-});
+//     if (password !== cpassword) {
+//         return res.redirect('/register?error=Hasła%20nie%20są%20identyczne');
+//     }
 
-app.post('/register', async (req, res) => {
-    const { username, password, cpassword, email, phone, dob } = req.body;
-
-    if (!username || !password || !cpassword || !email || !phone || !dob) {
-        return res.redirect("/register?error=Brak%20wprowadzonych%20danych");
-    }
-
-    if (password !== cpassword) {
-        return res.redirect('/register?error=Hasła%20nie%20są%20identyczne');
-    }
-
-    const userExists = users.some((u) => u.username === username);
-    if (userExists) {
-      return res.redirect('/register?error=Użytkownik%20już%20istnieje');
-    }
+//     const userExists = users.some((u) => u.username === username);
+//     if (userExists) {
+//       return res.redirect('/register?error=Użytkownik%20już%20istnieje');
+//     }
   
-    const newUser = {
-      id: users.length + 1,
-      username,
-      password, 
-      email,
-      phone,
-      dob,
-    };
-    users.push(newUser);
+//     const newUser = {
+//       id: users.length + 1,
+//       username,
+//       password, 
+//       email,
+//       phone,
+//       dob,
+//     };
+//     users.push(newUser);
   
-    req.session.user = newUser;
-    res.redirect('/'); 
-  });
+//     req.session.user = newUser;
+//     res.redirect('/'); 
+//   });
 
 app.get('/logout', (req, res) => {
     req.session.destroy((err) => {
@@ -251,14 +222,63 @@ app.get('/logout', (req, res) => {
     }
     res.redirect('/');
 });
-});
+
 
 app.get('/dashboard', (req, res) => {
     if (!req.session.user) {
     return res.redirect('/login?error=Proszę%20się%20zalogować');
-    }
+});
+  
+app.post('/register', async (req, res) => {
+  const { username, password, cpassword, email, phone, dob} = req.body;
+  console.log(password, cpassword)
 
-    res.render('add-product', { user: req.session.user });
+  if (!username || !password || !cpassword || !email || !phone || !dob) {
+    return res.redirect("/register?error=Empty%20data%20");
+  }
+
+  if (password!==cpassword) {
+    return res.redirect("/register?error=Different%20passwords");
+  }
+
+  const userCheck = await pool.query(
+    "SELECT * FROM users WHERE username = $1 OR email = $2",
+    [username, email]
+  );
+  
+  if (userCheck.rows.length > 0) {
+    return res.redirect("/register?error=Username%20or%20email%20exists");
+  }
+
+  try {
+    const result = await pool.query(
+      "INSERT INTO public.users(username, password, email, phone, dob) VALUES ($1, $2, $3, $4, $5);",
+      [username, password, email, phone, dob]
+    );
+
+    return res.redirect("/login?error=User%20added")
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Błąd serwera" });
+  }
 });
 
-http.createServer(app).listen(3000);
+
+
+app.get("/cart", (req, res) => {
+  pool.query("SELECT * FROM cart", (err, result) => {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).send("Server error");
+    }
+    const products = result.rows ? result.rows : result;
+
+    res.render("cart", { products: Array.isArray(products) ? products : [] });
+  });
+});
+
+app.post("/cart", (req, res) => {
+  return res.redirect('home')
+})
+
+http.createServer(app).listen(3011)
