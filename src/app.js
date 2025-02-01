@@ -266,19 +266,28 @@ app.post('/register', async (req, res) => {
 
 
 app.get("/cart", (req, res) => {
-  pool.query("SELECT * FROM cart", (err, result) => {
+  pool.query(
+    "SELECT name, type, price, COUNT(*) as quantity FROM cart GROUP BY name, type, price", 
+    (err, result) => {
+      if (err) {
+        console.error(err.message);
+        return res.status(500).send("Server error");
+      }
+      const products = result.rows ? result.rows : result;
+      res.render("cart", { products: Array.isArray(products) ? products : [] });
+    }
+  );
+});
+
+app.post("/cart", (req, res) => {
+  pool.query("DELETE FROM cart", (err, result) => {
     if (err) {
       console.error(err.message);
       return res.status(500).send("Server error");
     }
-    const products = result.rows ? result.rows : result;
-
-    res.render("cart", { products: Array.isArray(products) ? products : [] });
+    res.redirect("/");
   });
 });
 
-app.post("/cart", (req, res) => {
-  return res.redirect('home')
-})
 
 http.createServer(app).listen(3011)
