@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart</title>
+    <link rel="stylesheet" href="./cart.css">
+</head>
+<body>
+    <div class="topnav">
+        <a class="active" href="/">Home</a>
+        <a href="/cart">Cart</a>
+        <a href="/Favorites">Favorites</a>
+        <a href="/login">Login</a>
+        <% if (true) { %>
+            <a href="/add-product">Add product</a>
+        <% }%>
+    </div>
+    <h1>Cart</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Price</th>
+                <th>Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% products.forEach(item => { %>
+                <tr>
+                    <td><%= item.name %></td>
+                    <td><%= item.type %></td>
+                    <td><%= item.price %></td>
+                    <td><%= item.quantity %></td>
+                </tr>
+            <% }); %>
+        </tbody> 
+    </table>
+    <form action="/cart" method="POST">
+        <button type="submit">Buy</button>
+    </form>    
+</body>
+</html>

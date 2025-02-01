@@ -12,8 +12,37 @@ body {
     justify-content:center;
     align-items: center;
     height: 100vh;
-    background: url('dog.jpg');
+    /* background: url('dog.jpg'); */
+    background-color: gray;
     background-size: cover;
+}
+
+.topnav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    overflow: hidden;
+    background-color: #333;
+    z-index: 1000;
+}
+
+.topnav a {
+    float:right;
+    display: block;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+.topnav a:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.topnav a.active {
+    background-color: #9d41af;
+    color: white;
 }
 
 .glass-container {
@@ -70,7 +99,7 @@ input::placeholder {
 }
 
 input:focus {
-    border: 2px solid rgb(196, 106, 141);
+    border: 2px solid #9d41af;
     outline: none;
 }
 
