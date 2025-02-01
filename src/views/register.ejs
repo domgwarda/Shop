@@ -28,7 +28,11 @@
                 </div>
                     
                     <p>Already have an account? <a href="../login">Login</a></p>
+                    <% if (error) { %>
+                        <p style="color: red;"><%= error %></p>
+                    <% } %>
                 </div>
+
             </form>
         </div>
     </div>

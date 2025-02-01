@@ -109,7 +109,6 @@ app.post("/login", async (req, res) => {
   });
 });
 
-
 app.get("/register", (req, res) => {
   const error = req.query.error;
   res.render("register", { error });
@@ -120,11 +119,11 @@ app.post('/register', async (req, res) => {
   console.log(password, cpassword)
 
   if (!username || !password || !cpassword || !email || !phone || !dob) {
-    return res.redirect("/register?error=Brak%20wprowadzonych%20danych");
+    return res.redirect("/register?error=Empty%20data%20");
   }
 
   if (password!==cpassword) {
-    return res.redirect("/register?error=Hasła%20nie%20są%20identyczne");
+    return res.redirect("/register?error=Different%20passwords");
   }
 
   const userCheck = await pool.query(
@@ -133,7 +132,7 @@ app.post('/register', async (req, res) => {
   );
   
   if (userCheck.rows.length > 0) {
-    return res.redirect("/register?error=Username%20lub%20email%20już%20istnieje");
+    return res.redirect("/register?error=Username%20or%20email%20exists");
   }
 
   try {
@@ -141,11 +140,31 @@ app.post('/register', async (req, res) => {
       "INSERT INTO public.users(username, password, email, phone, dob) VALUES ($1, $2, $3, $4, $5);",
       [username, password, email, phone, dob]
     );
-    res.json({ message: "Użytkownik dodany!", user: result.rows[0] });
+
+    return res.redirect("/login?error=User%20added")
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Błąd serwera" });
   }
 });
+
+
+
+app.get("/cart", (req, res) => {
+  pool.query("SELECT * FROM cart", (err, result) => {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).send("Server error");
+    }
+    
+    const products = result.rows ? result.rows : result;
+
+    res.render("cart", { products: Array.isArray(products) ? products : [] });
+  });
+});
+
+app.post("/cart", (req, res) => {
+  return res.redirect('home')
+})
 
 http.createServer(app).listen(3011)
