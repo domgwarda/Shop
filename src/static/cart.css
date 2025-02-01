@@ -1,0 +1,121 @@
+* {
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    height: 100vh;
+    /* background: url('dog.jpg'); */
+    background-color: gray;
+    background-size: cover;
+    color: white;
+    padding-top: 20px;
+}
+
+.topnav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    overflow: hidden;
+    background-color: #333;
+    z-index: 1000;
+}
+
+.topnav a {
+    float:right;
+    display: block;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+.topnav a:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.topnav a.active {
+    background-color: #9d41af;
+    color: white;
+}
+
+h1 {
+    color: #fff;
+    font-size: 32px;
+    margin-top: 40px;
+    margin-bottom: 5px;
+    text-align: center;
+    width: 100%;
+}
+
+table {
+    width: 80%;
+    margin-top: 40px;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 15px;
+    text-align: center;
+    border: 1px solid #fff;
+}
+
+th {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+tbody tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+tbody tr:nth-child(odd) {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+button {
+    background: #fff;
+    color: black;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 30px;
+    font-size: 18px;
+    transition: background 0.3s ease;
+    display: block;
+    width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+button:hover {
+    background: transparent;
+    color: white;
+    border: 1px solid #fff;
+}
+
+@media screen and (max-width: 768px) {
+    table {
+        width: 100%;
+        font-size: 14px;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+
+    button {
+        width: 100%;
+        font-size: 16px;
+    }
+}
