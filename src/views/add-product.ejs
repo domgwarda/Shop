@@ -7,16 +7,20 @@
     <link rel="stylesheet" href="./add-product.css">
 </head>
 <body>
+    <div class="topnav">
+        <a class="active" href="/">Home</a>
+    </div>
+    <div class="container">
     <h1>Add Product</h1>
-    <form action="/add-product" method="POST">
+    <form action="/add-product" method="POST" enctype="multipart/form-data">
         <label for="name">Product Name:</label>
         <input type="text" id="name" name="name" required><br><br>
 
         <label for="price">Price:</label>
         <input type="number" id="cost" name="cost" step="0.01" required><br><br>
 
-        <label for="image">Image path:</label>
-        <input type="text" id="image" name="image" required><br><br>
+        <label for="image">Upload Image (PNG only):</label>
+        <input type="file" id="image" name="image" accept=".png" required><br><br>
 
         <label for="type">Product Type:</label>
         <select id="type" name="type" required>
@@ -24,7 +28,8 @@
             <option value="Sticker">Sticker</option>
         </select><br><br>
 
-        <button type="submit">Add Product</button>
+        <button type="submit" class="button1">Add Product</button>
     </form>
+    </div>
 </body>
 </html>
