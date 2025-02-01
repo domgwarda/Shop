@@ -146,52 +146,36 @@ app.get('/login', (req, res) => {
   });
 
 
-app.post("/login", async (req, res) => {
-    const { username, password } = req.body;
-
-    console.log('Próba logowania:', username, password);
-
-    const user = users.find((u) => u.username === username && u.password === password);
-
-    if (!user) {
-        return res.redirect('/login?error=Nieprawidłowa%20nazwa%20użytkownika%20lub%20hasło');
-    }
-
-    // Store user in session
-    req.session.user = user;
-    if (username === 'admin') {
-        req.session.isAdmin = true;
-    }
-    res.redirect('/dashboard'); 
-});
-
-// app.get("/login", (req, res) => {
-//     res.render("login");
-
-// });
 
 app.post("/login", async (req, res) => {
     const { username, password } = req.body;
-
-    console.log("Próba logowania:", username, password);
-
-    try {
-        const { data, error } = await supabase.from("users").select("password").eq("username", username).single();
-
-        if (error || !data) {
-            return res.redirect("/login?error=Użytkownik%20nie%20istnieje");
+    req.session.user = { username, password };
+  
+    pool.query('SELECT * FROM users', (err, result) => {
+      if (err) {
+        console.log(err.message);
+        return res.status(500).send('Server error');
+      }
+  
+      let userFound = false;
+      result.rows.forEach((row) => {
+        if (row.username === username) {
+          userFound = true;
+          if (row.password !== password) {
+            return res.redirect("/login?error=Niepoprawne%20hasło");
+          }
+          if (row.username === 'admin') {
+            req.session.isAdmin = true;
+          }
+          return res.redirect('/');
         }
-
-        if (data.password !== password) {
-            return res.redirect("/login?error=Nieprawidłowe%20hasło");
-        }
-
-        res.json({ message: "Zalogowano pomyślnie", user: data });
-
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+      });
+  
+      if (!userFound) {
+        return res.redirect("/login?error=Użytkownik%20nieznaleziony");
+      }
+    });
+  });
 
 app.get("/register", (req, res) => {
     const error = req.query.error;
@@ -205,43 +189,45 @@ app.get("/register", (req, res) => {
 
 //
 
-app.get("/login", (req, res) => {
-    res.render("login");
-});
 
 app.get('/register', (req, res) => {
-const error = req.query.error;
-res.render('register', { error });
+    const error = req.query.error;
+    res.render('register', { error });
 });
 
 app.post('/register', async (req, res) => {
-    const { username, password, cpassword, email, phone, dob } = req.body;
-
+    const { username, password, 'confirm-password': cpassword, email, phone, dob } = req.body;
+    console.log("Request Body:", req.body);
+    console.log("Password:", password, "Confirm Password:", cpassword);
+  
     if (!username || !password || !cpassword || !email || !phone || !dob) {
-        return res.redirect("/register?error=Brak%20wprowadzonych%20danych");
-    }
-
-    if (password !== cpassword) {
-        return res.redirect('/register?error=Hasła%20nie%20są%20identyczne');
-    }
-
-    const userExists = users.some((u) => u.username === username);
-    if (userExists) {
-      return res.redirect('/register?error=Użytkownik%20już%20istnieje');
+      return res.redirect("/register?error=Empty%20data%20");
     }
   
-    const newUser = {
-      id: users.length + 1,
-      username,
-      password, 
-      email,
-      phone,
-      dob,
-    };
-    users.push(newUser);
+    if (password!==cpassword) {
+      return res.redirect("/register?error=Different%20passwords");
+    }
   
-    req.session.user = newUser;
-    res.redirect('/'); 
+    const userCheck = await pool.query(
+      "SELECT * FROM users WHERE username = $1 OR email = $2",
+      [username, email]
+    );
+    
+    if (userCheck.rows.length > 0) {
+      return res.redirect("/register?error=Username%20or%20email%20exists");
+    }
+  
+    try {
+      const result = await pool.query(
+        "INSERT INTO public.users(username, password, email, phone, dob) VALUES ($1, $2, $3, $4, $5);",
+        [username, password, email, phone, dob]
+      );
+  
+      return res.redirect("/login?error=User%20added")
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Błąd serwera" });
+    }
   });
 
 app.get('/logout', (req, res) => {
