@@ -159,7 +159,7 @@ app.post("/login", async (req, res) => {
         if (row.username === username) {
           userFound = true;
           if (row.password !== password) {
-            return res.redirect("/login?error=Niepoprawne%20hasło");
+            return res.redirect("/login?error=Incorrect%20password");
           }
           if (row.username === 'admin') {
             req.session.isAdmin = true;
@@ -169,7 +169,7 @@ app.post("/login", async (req, res) => {
       });
   
       if (!userFound) {
-        return res.redirect("/login?error=Użytkownik%20nieznaleziony");
+        return res.redirect("/login?error=User%20doesn't%20exist");
       }
     });
   });
@@ -205,7 +205,7 @@ app.post('/register', async (req, res) => {
     );
     
     if (userCheck.rows.length > 0) {
-      return res.redirect("/register?error=Username%20or%20email%20exists");
+      return res.redirect("/register?error=Username%20or%20email%20already%20exists");
     }
   
     try {
@@ -261,12 +261,14 @@ app.get('/logout', (req, res) => {
     }
     res.redirect('/');
 });
+})
 
 
 app.get('/dashboard', (req, res) => {
     if (!req.session.user) {
     return res.redirect('/login?error=Proszę%20się%20zalogować');
-});
+    }
+})
   
 app.post('/register', async (req, res) => {
   const { username, password, cpassword, email, phone, dob} = req.body;
