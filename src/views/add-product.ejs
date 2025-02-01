@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="./add-product.css">
 </head>
 <body>
+    <div class="topnav">
+        <a class="active" href="/">Home</a>
+    </div>
+    <div class="container">
     <h1>Add Product</h1>
     <form action="/add-product" method="POST" enctype="multipart/form-data">
         <label for="name">Product Name:</label>
@@ -24,7 +28,8 @@
             <option value="Sticker">Sticker</option>
         </select><br><br>
 
-        <button type="submit">Add Product</button>
+        <button type="submit" class="button1">Add Product</button>
     </form>
+    </div>
 </body>
 </html>

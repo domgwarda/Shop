@@ -46,10 +46,12 @@ body {
 
 .column {
     float: left;
+    height: 100vh;
 }
 
 .left {
     width: 10%;
+    min-height: 100vh;
     padding: 10px;
     background-color: #909090;
 }

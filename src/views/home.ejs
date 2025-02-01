@@ -21,8 +21,12 @@
         <a class="active" href="/">Home</a>
         <a href="/Basket">Basket</a>
         <a href="/Favorites">Favorites</a>
-        <a href="/login">Login</a>
-        <% if (true) { %>
+        <% if (notLogged) { %>
+            <a href="/login">Login</a>
+        <% } else { %>
+            <a href="/logout">Logout</a>
+        <% } %>
+        <% if (isAdmin) { %>
             <a href="/add-product">Add product</a>
         <% }%>
     </div>
