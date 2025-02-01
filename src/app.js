@@ -143,37 +143,42 @@ app.get('/login', (req, res) => {
     res.render('login', { error });
   });
 
+
 app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-
-  pool.query('SELECT * FROM users', (err, result) => {
-    if (err) {
-      console.log(err.message);
-      return res.status(500).send('Server error');
-    }
-
-    let userFound = false;
-    result.rows.forEach((row) => {
-      if (row.username === username) {
-        userFound = true;
-        if (row.password !== password) {
-          return res.redirect("/login?error=Niepoprawne%20hasło");
+    const { username, password } = req.body;
+    req.session.user = { username, password };
+  
+    pool.query('SELECT * FROM users', (err, result) => {
+      if (err) {
+        console.log(err.message);
+        return res.status(500).send('Server error');
+      }
+  
+      let userFound = false;
+      result.rows.forEach((row) => {
+        if (row.username === username) {
+          userFound = true;
+          if (row.password !== password) {
+            return res.redirect("/login?error=Niepoprawne%20hasło");
+          }
+          if (row.username === 'admin') {
+            req.session.isAdmin = true;
+          }
+          return res.redirect('/');
         }
-        return res.redirect('/');
+      });
+  
+      if (!userFound) {
+        return res.redirect("/login?error=Użytkownik%20nieznaleziony");
       }
     });
-
-    if (!userFound) {
-      return res.redirect("/login?error=Użytkownik%20nieznaleziony");
-    }
   });
-});
+
 
 // app.get("/login", (req, res) => {
 //     res.render("login");
 
 ///
-
 
 app.get("/register", (req, res) => {
     const error = req.query.error;
@@ -181,6 +186,40 @@ app.get("/register", (req, res) => {
 })
 
 
+app.post('/register', async (req, res) => {
+    const { username, password, 'confirm-password': cpassword, email, phone, dob } = req.body;
+    console.log("Request Body:", req.body);
+    console.log("Password:", password, "Confirm Password:", cpassword);
+  
+    if (!username || !password || !cpassword || !email || !phone || !dob) {
+      return res.redirect("/register?error=Empty%20data%20");
+    }
+  
+    if (password!==cpassword) {
+      return res.redirect("/register?error=Different%20passwords");
+    }
+  
+    const userCheck = await pool.query(
+      "SELECT * FROM users WHERE username = $1 OR email = $2",
+      [username, email]
+    );
+    
+    if (userCheck.rows.length > 0) {
+      return res.redirect("/register?error=Username%20or%20email%20exists");
+    }
+  
+    try {
+      const result = await pool.query(
+        "INSERT INTO public.users(username, password, email, phone, dob) VALUES ($1, $2, $3, $4, $5);",
+        [username, password, email, phone, dob]
+      );
+  
+      return res.redirect("/login?error=User%20added")
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Błąd serwera" });
+    }
+  });
 // app.get("/login", (req, res) => {
 //     res.render("login");
 // });
