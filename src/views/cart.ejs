@@ -41,7 +41,7 @@
             <% }); %>
         </tbody> 
     </table>
-    <h3>Total to Pay: <%= total %> PLN</h3>
+    <h3>Total to Pay: <%= total.toFixed(2) %> PLN</h3>
     <form action="/cart" method="POST">
         <button type="submit">Buy</button>
     </form>    
