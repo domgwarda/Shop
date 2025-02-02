@@ -31,7 +31,7 @@ const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
     database: 'weppo-projekt',
-    password: '1',
+    password: 'nivea',
     port: 5432,
 });
 
@@ -207,13 +207,15 @@ app.post("/login", async (req, res) => {
 ///
 
 app.get("/register", (req, res) => {
+    const notLogged = !req.session.user;
+    const isAdmin = req.session.isAdmin;
     const error = req.query.error;
-    res.render("register", { error });
+    res.render("register", { error , notLogged , isAdmin });
 })
 
 
 app.post('/register', async (req, res) => {
-    const { username, password, 'confirm-password': cpassword, email, phone, dob } = req.body;
+    const { username, password,  cpassword, email, phone, dob } = req.body;
     console.log("Request Body:", req.body);
     console.log("Password:", password, "Confirm Password:", cpassword);
   
@@ -246,39 +248,6 @@ app.post('/register', async (req, res) => {
       res.status(500).json({ error: "Błąd serwera" });
     }
   });
-// app.get("/login", (req, res) => {
-//     res.render("login");
-// });
-
-// app.post('/register', async (req, res) => {
-//     const { username, password, cpassword, email, phone, dob } = req.body;
-
-//     if (!username || !password || !cpassword || !email || !phone || !dob) {
-//         return res.redirect("/register?error=Brak%20wprowadzonych%20danych");
-//     }
-
-//     if (password !== cpassword) {
-//         return res.redirect('/register?error=Hasła%20nie%20są%20identyczne');
-//     }
-
-//     const userExists = users.some((u) => u.username === username);
-//     if (userExists) {
-//       return res.redirect('/register?error=Użytkownik%20już%20istnieje');
-//     }
-  
-//     const newUser = {
-//       id: users.length + 1,
-//       username,
-//       password, 
-//       email,
-//       phone,
-//       dob,
-//     };
-//     users.push(newUser);
-  
-//     req.session.user = newUser;
-//     res.redirect('/'); 
-//   });
 
 app.get('/logout', (req, res) => {
     req.session.destroy((err) => {
@@ -296,39 +265,39 @@ app.get('/dashboard', (req, res) => {
     }
 })
   
-app.post('/register', async (req, res) => {
-  const { username, password, cpassword, email, phone, dob} = req.body;
-  console.log(password, cpassword)
+// app.post('/register', async (req, res) => {
+//   const { username, password, cpassword, email, phone, dob} = req.body;
+//   console.log(password, cpassword)
 
-  if (!username || !password || !cpassword || !email || !phone || !dob) {
-    return res.redirect("/register?error=Empty%20data%20");
-  }
+//   if (!username || !password || !cpassword || !email || !phone || !dob) {
+//     return res.redirect("/register?error=Empty%20data%20");
+//   }
 
-  if (password!==cpassword) {
-    return res.redirect("/register?error=Different%20passwords");
-  }
+//   if (password!==cpassword) {
+//     return res.redirect("/register?error=Different%20passwords");
+//   }
 
-  const userCheck = await pool.query(
-    "SELECT * FROM users WHERE username = $1 OR email = $2",
-    [username, email]
-  );
+//   const userCheck = await pool.query(
+//     "SELECT * FROM users WHERE username = $1 OR email = $2",
+//     [username, email]
+//   );
   
-  if (userCheck.rows.length > 0) {
-    return res.redirect("/register?error=Username%20or%20email%20exists");
-  }
+//   if (userCheck.rows.length > 0) {
+//     return res.redirect("/register?error=Username%20or%20email%20exists");
+//   }
 
-  try {
-    const result = await pool.query(
-      "INSERT INTO public.users(username, password, email, phone, dob) VALUES ($1, $2, $3, $4, $5);",
-      [username, password, email, phone, dob]
-    );
+//   try {
+//     const result = await pool.query(
+//       "INSERT INTO public.users(username, password, email, phone, dob) VALUES ($1, $2, $3, $4, $5);",
+//       [username, password, email, phone, dob]
+//     );
 
-    return res.redirect("/login?error=User%20added")
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Błąd serwera" });
-  }
-});
+//     return res.redirect("/login?error=User%20added")
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Błąd serwera" });
+//   }
+// });
 
 
 
@@ -377,4 +346,4 @@ app.post("/cart", (req, res) => {
 });
 
 
-http.createServer(app).listen(3011)
+http.createServer(app).listen(3000)
