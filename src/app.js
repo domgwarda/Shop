@@ -14,6 +14,8 @@ const { Pool } = pg;
 var app = express();
 app.set('views', './views');
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
 app.set('view engine', 'ejs');
 app.use(express.static("./static"));
 app.use('/images', express.static('images'));
@@ -49,7 +51,7 @@ pool.connect()
 const upload = multer({ storage });
 
 app.use((req, res, next) => {
-    console.log('Request:', req.method, req.url);
+    // console.log('Request:', req.method, req.url);
     next();
 });
 
@@ -78,8 +80,24 @@ app.get('/destroy-session', (req, res) => {
     });
 });
 
+app.post('/add-to-cart', async (req, res) => {
+  if (!req.session.user) {
+      console.log('User not logged in');
+      return res.status(401).json({ success: false, message: 'User not logged in' });
+  }
+  const { productName, productCost, productType } = req.body;
+
+  try {
+      const result = await pool.query('INSERT INTO cart (name, cost, type) VALUES ($1, $2, $3)', [productName, productCost, productType]);
+      console.log('Product added to cart successfully');
+  } catch (error) {
+      console.error('Error adding to cart:', error);
+      res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
+
 app.get('/products/:from(\\d+)/?', async (req, res) => {
-    console.log('req.params', req.params);
+    // console.log('req.params', req.params);
     const from = parseInt(req.params.from, 10);
     const query = 'SELECT * FROM Products ORDER BY id ASC LIMIT 3 OFFSET $1';
     const values = [from];
@@ -139,9 +157,17 @@ app.post('/add-product', upload.single('image'), (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-    const error = req.query.error;
-    res.render('login', { error });
+  const notLogged = !req.session.user;
+  const isAdmin = req.session.isAdmin;
+  const error = req.query.error;
+  if (isAdmin){
+      res.render('login', { error, notLogged , isAdmin });
+  }
+  else {
+      res.render('login', { error, notLogged , isAdmin: false });
+  }
   });
+
 
 
 app.post("/login", async (req, res) => {
@@ -307,18 +333,38 @@ app.post('/register', async (req, res) => {
 
 
 app.get("/cart", (req, res) => {
+  const notLogged = !req.session.user;
+  const isAdmin = req.session.isAdmin;
+
   pool.query(
-    "SELECT name, type, price, COUNT(*) as quantity FROM cart GROUP BY name, type, price", 
+    "SELECT name, type, cost, COUNT(*) as quantity FROM cart GROUP BY name, type, cost", 
     (err, result) => {
       if (err) {
         console.error(err.message);
         return res.status(500).send("Server error");
       }
-      const products = result.rows ? result.rows : result;
-      res.render("cart", { products: Array.isArray(products) ? products : [] });
-    }
-  );
+      
+      const products = result.rows ? result.rows : [];
+
+      function convertMoneyToFloat(moneyString) {
+        return parseFloat(moneyString.replace(/[^0-9.,-]/g, '').replace(',', '.'));
+      }
+
+      let total = 0;
+      products.forEach(item => {
+        total += convertMoneyToFloat(item.cost) * item.quantity;
+      });
+      
+      if (isAdmin){
+        res.render('cart', { products: products, total: total, notLogged , isAdmin });
+      }
+      else {
+        res.render('cart', {products: products, total: total, notLogged , isAdmin: false });
+      }
+  });
 });
+
+
 
 app.post("/cart", (req, res) => {
   pool.query("DELETE FROM cart", (err, result) => {

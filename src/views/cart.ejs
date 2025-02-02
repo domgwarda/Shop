@@ -11,8 +11,12 @@
         <a class="active" href="/">Home</a>
         <a href="/cart">Cart</a>
         <a href="/Favorites">Favorites</a>
-        <a href="/login">Login</a>
-        <% if (true) { %>
+        <% if (notLogged) { %>
+            <a href="/login">Login</a>
+        <% } else { %>
+            <a href="/logout">Logout</a>
+        <% } %>
+        <% if (isAdmin) { %>
             <a href="/add-product">Add product</a>
         <% }%>
     </div>
@@ -31,12 +35,13 @@
                 <tr>
                     <td><%= item.name %></td>
                     <td><%= item.type %></td>
-                    <td><%= item.price %></td>
+                    <td><%= item.cost %></td>
                     <td><%= item.quantity %></td>
                 </tr>
             <% }); %>
         </tbody> 
     </table>
+    <h3>Total to Pay: <%= total %> PLN</h3>
     <form action="/cart" method="POST">
         <button type="submit">Buy</button>
     </form>    
